@@ -213,8 +213,10 @@ if len(USER_SESSION_STRING) != 0:
         TELEGRAM_API,
         TELEGRAM_HASH,
         session_string=USER_SESSION_STRING,
+        workers=1000,
         parse_mode=enums.ParseMode.HTML,
-        max_concurrent_transmissions=10,
+        #max_concurrent_transmissions=10,
+        no_updates=True
     ).start()
     IS_PREMIUM_USER = user.me.is_premium
 else:
@@ -493,7 +495,7 @@ bot = tgClient(
     bot_token=BOT_TOKEN,
     workers=1000,
     parse_mode=enums.ParseMode.HTML,
-    max_concurrent_transmissions=10,
+    #max_concurrent_transmissions=10,
 ).start()
 bot_loop = bot.loop
 bot_name = bot.me.username
