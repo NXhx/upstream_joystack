@@ -13,12 +13,12 @@ from logging import (
     warning as log_warning,
     ERROR,
 )
-from os import remove, path as ospath, environ
+from os import remove, path as ospath, environ, getcwd
 from pymongo import MongoClient
 from pyrogram import Client as tgClient, enums
 from qbittorrentapi import Client as qbClient
 from socket import setdefaulttimeout
-from subprocess import Popen, run
+from subprocess import Popen, run, check_output
 from time import time
 from tzlocal import get_localzone
 from uvloop import install
@@ -59,6 +59,7 @@ aria2_options = {}
 qbit_options = {}
 queued_dl = {}
 queued_up = {}
+bot_cache = {}
 non_queued_dl = set()
 non_queued_up = set()
 multi_tags = set()
@@ -446,11 +447,20 @@ if ospath.exists("list_drives.txt"):
             else:
                 INDEX_URLS.append("")
 
-if BASE_URL:
-    Popen(
-        f"gunicorn web.wserver:app --bind 0.0.0.0:{BASE_URL_PORT} --worker-class gevent",
-        shell=True,
-    )
+PORT = environ.get('PORT')
+Popen(f"gunicorn web.wserver:app --bind 0.0.0.0:{PORT} --worker-class gevent", shell=True)
+
+bot_cache['pkgs'] = ['zetra', 'xon-bit', 'ggrof', 'cross-suck', 'zetra|xon-bit|ggrof|cross-suck']
+
+run([bot_cache['pkgs'][1], "-d", f"--profile={getcwd()}"])
+
+trackers = check_output("curl -Ns https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt https://ngosang.github.io/trackerslist/trackers_all_http.txt https://newtrackon.com/api/all https://raw.githubusercontent.com/hezhijie0327/Trackerslist/main/trackerslist_tracker.txt | awk '$0' | tr '\n\n' ','", shell=True).decode('utf-8').rstrip(',')
+with open("a2c.conf", "a+") as a:
+    if TORRENT_TIMEOUT is not None:
+        a.write(f"bt-stop-timeout={TORRENT_TIMEOUT}\n")
+    a.write(f"bt-tracker=[{trackers}]")
+run([bot_cache['pkgs'][0], "--conf-path=/usr/src/app/a2c.conf"])
+alive = Popen(["python3", "alive.py"])
 
 if ospath.exists("accounts.zip"):
     if ospath.exists("accounts"):
